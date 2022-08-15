@@ -4,8 +4,8 @@ import { cors } from 'middy/middlewares'
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
 
 import { getUserId } from '../../auth/utils'
-import { TodoItem } from '../../models/TodoItem'
 import { createLogger } from '../../utils/logger'
+import { TodoItem } from '../../models/TodoItem'
 import { createTodo } from '../../helpers/todosAccess'
 
 const logger = createLogger('createTodo')

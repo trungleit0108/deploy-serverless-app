@@ -3,21 +3,21 @@ import { DocumentClient } from 'aws-sdk/clients/dynamodb'
 
 import { TodoItem } from '../models/TodoItem'
 import { TodoUpdate } from '../models/TodoUpdate'
-
 import { createLogger } from '../utils/logger'
+import { CreateSignedURLRequest } from '../requests/CreateSignedURLRequest'
+import { getPresignedUploadURL } from './attachmentUtils'
 
 const logger = createLogger('todosDataAccess')
 
-const docClient: DocumentClient = new AWS.DynamoDB.DocumentClient()
+const documentClient: DocumentClient = new AWS.DynamoDB.DocumentClient()
 const todosTable = process.env.TODOS_TABLE
 const bucketName = process.env.IMAGES_S3_BUCKET
-const s3: AWS.S3 = new AWS.S3({ signatureVersion: 'v4' })
 const urlExpiration: Number = Number(process.env.SIGNED_URL_EXPIRATION)
 
 export const getTodos = async (userId: string): Promise<TodoItem[]> => {
   logger.info('Getting all todos')
 
-  const result = await docClient
+  const result = await documentClient
     .query({
       TableName: todosTable,
       KeyConditionExpression: '#userId =:i',
@@ -30,9 +30,7 @@ export const getTodos = async (userId: string): Promise<TodoItem[]> => {
     })
     .promise()
 
-  const items = result.Items
-
-  return items as TodoItem[]
+  return result.Items as TodoItem[]
 }
 
 export const createTodo = async (todo: TodoItem): Promise<TodoItem> => {
@@ -40,7 +38,7 @@ export const createTodo = async (todo: TodoItem): Promise<TodoItem> => {
     todoId: todo.todoId
   })
 
-  await docClient
+  await documentClient
     .put({
       TableName: todosTable,
       Item: todo
@@ -56,7 +54,7 @@ export const deleteTodo = async (todoId: string, userId: string) => {
     userId: userId
   })
 
-  await docClient
+  await documentClient
     .delete({
       TableName: todosTable,
       Key: {
@@ -96,7 +94,7 @@ export const updateTodo = async (
     ReturnValues: 'ALL_NEW'
   }
 
-  const result = await docClient.update(params).promise()
+  const result = await documentClient.update(params).promise()
 
   logger.info(`Update statement has completed without error`, {
     result: result
@@ -109,12 +107,13 @@ export const getUrl = async (
   todoId: string,
   userId: string
 ): Promise<string> => {
-  // Get pre-signed URL from filestore
-  const url = await s3.getSignedUrl('putObject', {
+  const createSignedURLRequest: CreateSignedURLRequest = {
     Bucket: bucketName,
     Key: todoId,
     Expires: urlExpiration
-  })
+  }
+  // Get pre-signed URL from filestore
+  const url = await getPresignedUploadURL(createSignedURLRequest)
 
   logger.info('url', { url: url })
 
@@ -147,7 +146,7 @@ export const updateTodoUrl = async (todoId: string, userId: string) => {
     ReturnValues: 'ALL_NEW'
   }
 
-  const result = await docClient.update(params).promise()
+  const result = await documentClient.update(params).promise()
 
   logger.info(`Update statement has completed without error`, {
     result: result
