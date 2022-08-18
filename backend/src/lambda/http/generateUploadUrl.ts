@@ -4,23 +4,36 @@ import { cors, httpErrorHandler } from 'middy/middlewares'
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
 
 import { createLogger } from '../../utils/logger'
-import { createAttachmentPresignedUrl } from '../../helpers/attachmentUtils'
+import { getPresignedUploadURL } from '../../helpers/todos'
+import { CreateSignedURLRequest } from '../../requests/CreateSignedURLRequest'
 
+const bucketName = process.env.ATTACHMENT_S3_BUCKET
+const urlExpiration = process.env.SIGNED_URL_EXPIRATION
 const logger = createLogger('generateUploadUrl')
 
 export const handler = middy(
   async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    logger.info('Processing event: ', event)
-    logger.info('pathParametersssssssssssssssssssssssssssssss')
-    logger.info(event.pathParameters)
-    const todoId = event.pathParameters.todoId
-    const uploadUrl = await createAttachmentPresignedUrl(todoId)
-    logger.info('generateUploadUrl OKAYYYYYYYYY')
-    return {
-      statusCode: 202,
-      body: JSON.stringify({
-        uploadUrl
-      })
+    try {
+      logger.info('generateUploadUrl pending')
+      const createSignedURLRequest: CreateSignedURLRequest = {
+        Bucket: bucketName,
+        Key: event.pathParameters.todoId,
+        Expires: parseInt(urlExpiration)
+      }
+      const uploadUrl = await getPresignedUploadURL(createSignedURLRequest)
+      logger.info('generateUploadUrl fulfilled')
+      return {
+        statusCode: 202,
+        body: JSON.stringify({
+          uploadUrl
+        })
+      }
+    } catch (error) {
+      logger.error('generateUploadUrl failed')
+      return {
+        statusCode: 404,
+        body: `error ${error}`
+      }
     }
   }
 )

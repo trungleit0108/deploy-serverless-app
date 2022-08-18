@@ -2,13 +2,6 @@ import { decode } from 'jsonwebtoken'
 import { APIGatewayProxyEvent } from 'aws-lambda'
 import { JwtPayload } from './JwtPayload'
 
-export function getUserId(event: APIGatewayProxyEvent): string {
-  const authHeader = event.headers.Authorization
-  const jwtToken = getToken(authHeader)
-
-  return parseUserId(jwtToken)
-}
-
 /**
  * Parse a JWT token and return a user id
  * @param jwtToken JWT token to parse
@@ -29,4 +22,11 @@ export function getToken(authHeader: string): string {
   }
 
   return authHeader.split(' ')[1]
+}
+
+export function getUserId(event: APIGatewayProxyEvent): string {
+  const authHeader = event.headers.Authorization
+  const jwtToken = getToken(authHeader)
+
+  return parseUserId(jwtToken)
 }

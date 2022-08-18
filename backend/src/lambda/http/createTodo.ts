@@ -6,30 +6,19 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
 import { getUserId } from '../../auth/utils'
 import { createLogger } from '../../utils/logger'
 import { TodoItem } from '../../models/TodoItem'
-import { createTodo } from '../../helpers/todosAccess'
+import { createTodo } from '../../helpers/todos'
+import { CreateTodoRequest } from '../../requests/CreateTodoRequest'
 
 const logger = createLogger('createTodo')
 
 export const handler = middy(
   async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    let todo: TodoItem
     try {
       logger.info('createTodo pending')
 
       const userId = getUserId(event)
-
-      const milliseconds = new Date().getMilliseconds()
-
-      todo = {
-        ...JSON.parse(event.body),
-        userId,
-        todoId: milliseconds.toString(),
-        createdAt: 'TrungLe',
-        done: false
-      }
-      logger.info('todooooooooooooooooo')
-      logger.info(todo)
-      const createdTodo: TodoItem = await createTodo(todo)
+      const createTodoRequest: CreateTodoRequest = JSON.parse(event.body)
+      const createdTodo: TodoItem = await createTodo(createTodoRequest, userId)
 
       logger.info('createTodo fulfilled')
       return {
@@ -43,8 +32,7 @@ export const handler = middy(
       return {
         statusCode: 500,
         body: JSON.stringify({
-          err,
-          dataError: todo
+          err
         })
       }
     }
@@ -56,21 +44,3 @@ handler.use(
     credentials: true
   })
 )
-
-// export const handler: APIGatewayProxyHandler = async (
-//   event: APIGatewayProxyEvent
-// ): Promise<APIGatewayProxyResult> => {
-//   try {
-//     const todoObj = TodoBusinessLayer.createTodo(event, logger)
-//     return {
-//       statusCode: 200,
-//       body: JSON.stringify(todoObj),
-//       headers: {
-//         'Access-Control-Allow-Origin': '*',
-//         'Access-Control-Allow-Credentials': true
-//       }
-//     }
-//   } catch (err) {
-//     logger.error(`fail to create item`, err)
-//   }
-// }

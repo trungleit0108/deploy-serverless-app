@@ -17,9 +17,6 @@ provider:
   stage: ${opt:stage, 'dev'}
   region: ${opt:region, 'us-east-1'}
 
-  # apiGateway:
-  #   minimumCompressionSize: 1024
-
   tracing:
     lambda: true
     apiGateway: true
@@ -36,14 +33,6 @@ provider:
     # Enable API Gateway logs
     restApi: true
 
-  # iamRoleStatements:
-  #   - Effect: Allow
-  #     Action:
-  #       - xray:PutTelemetryRecords
-  #       - xray:PutTraceSegments
-  #       - dynamodb:Scan
-  #     Resource: '*'
-
 functions:
   Auth:
     handler: src/lambda/auth/auth0Authorizer.handler
@@ -59,24 +48,15 @@ functions:
           cors: true
           authorizer: Auth
           reqValidatorName: RequestValidator
-    # iamRoleStatementsInherit: true
     iamRoleStatements:
       - Effect: Allow
         Action:
-          # - dynamodb:GetItem
           - dynamodb:Query
-          # - dynamodb:Scan
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
       - Effect: Allow
         Action:
           - dynamodb:Query
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}/index/${self:provider.environment.TODOS_USER_INDEX}
-      # - Effect: 'Allow'
-      #   Action:
-      #     - xray:PutTelemetryRecords
-      #     - xray:PutTraceSegments
-      #     - dynamodb:Scan
-      #   Resource: '*'
 
   # TODO: Configure this function -
   # Provide iamRoleStatements property. Decide the Actions and AWS Resource.
@@ -91,29 +71,16 @@ functions:
           cors: true
           authorizer: Auth
           reqValidatorName: RequestValidator
-          # request:
-          #   schemas:
-          #     application/json: ${file(models/create-todo-model.json)}
-    # iamRoleStatementsInherit: true
     iamRoleStatements:
       - Effect: Allow
         Action:
           - dynamodb:PutItem
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
-      # - Effect: Allow
-      #   Action:
-      #     - dynamodb:Query
-      #   Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}/index/${self:provider.environment.TODO_ID_INDEX}
-      # - Effect: 'Allow'
-      #   Action:
-      #     - xray:PutTelemetryRecords
-      #     - xray:PutTraceSegments
-      #   Resource: '*'
 
   # TODO: Configure this function
   # Provide property for setting up CORS, Authorizer, iamRoleStatements, and request schemas
-  UpdateTodo:
-    handler: src/lambda/http/updateTodo.handler
+  UpdateStatusTodo:
+    handler: src/lambda/http/updateStatusTodo.handler
     events:
       - http:
           method: patch
@@ -121,29 +88,12 @@ functions:
           cors: true
           authorizer: Auth
           reqValidatorName: RequestValidator
-          # documentation:
-          #   summary: update todo item
-          #   description: update todo item
-          #   requestModels:
-          #     'application/json': UpdateTodo
-    # iamRoleStatementsInherit: true
     iamRoleStatements:
       - Effect: Allow
         Action:
-          # - dynamodb:Query
           - dynamodb:GetItem
-          # - dynamodb:PutItem
           - dynamodb:UpdateItem
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
-      # - Effect: Allow
-      #   Action:
-      #     - dynamodb:Query
-      #   Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}/index/${self:provider.environment.TODO_ID_INDEX}
-      # - Effect: Allow
-      #   Action:
-      #     - xray:PutTelemetryRecords
-      #     - xray:PutTraceSegments
-      #   Resource: '*'
 
   # TODO: Configure this function
   # Provide property for setting up CORS, Authorizer, iamRoleStatements
@@ -156,23 +106,12 @@ functions:
           cors: true
           authorizer: Auth
           reqValidatorName: RequestValidator
-    # iamRoleStatementsInherit: true
     iamRoleStatements:
       - Effect: Allow
         Action:
-          # - dynamodb:Query
           - dynamodb:GetItem
           - dynamodb:DeleteItem
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
-      # - Effect: Allow
-      #   Action:
-      #     - dynamodb:Query
-      #   Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}/index/${self:provider.environment.TODO_ID_INDEX}
-      # - Effect: 'Allow'
-      #   Action:
-      #     - xray:PutTelemetryRecords
-      #     - xray:PutTraceSegments
-      #   Resource: '*'
       - Effect: Allow
         Action:
           - s3:DeleteObject
@@ -189,32 +128,20 @@ functions:
           cors: true
           authorizer: Auth
           reqValidatorName: RequestValidator
-    # iamRoleStatementsInherit: true
     iamRoleStatements:
       - Effect: Allow
         Action:
           - s3:PutObject
           - s3:GetObject
         Resource: arn:aws:s3:::${self:provider.environment.ATTACHMENT_S3_BUCKET}/*
-      # - Effect: Allow
-      #   Action:
-      #     - dynamodb:UpdateItem
-      #     - dynamodb:Query
-      #   Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
-      # - Effect: Allow
-      #   Action:
-      #     - xray:PutTelemetryRecords
-      #     - xray:PutTraceSegments
-      #   Resource: '*'
-  UpdateTodoAttachment:
-    handler: src/lambda/http/updateTodoAttachment.handler
+  UpdateAttachmentTodo:
+    handler: src/lambda/http/updateAttachmentTodo.handler
     events:
       - http:
           method: put
           path: todos/{todoId}/attachment
           cors: true
           authorizer: Auth
-          # reqValidatorName: RequestValidator
     iamRoleStatements:
       - Effect: Allow
         Action:

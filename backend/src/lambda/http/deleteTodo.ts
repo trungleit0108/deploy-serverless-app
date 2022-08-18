@@ -5,7 +5,7 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
 
 import { getUserId } from '../../auth/utils'
 import { createLogger } from '../../utils/logger'
-import { deleteTodo } from '../../helpers/todosAccess'
+import { deleteTodo } from '../../helpers/todos'
 
 const logger = createLogger('deleteTodo')
 
@@ -38,22 +38,3 @@ handler.use(httpErrorHandler()).use(
     credentials: true
   })
 )
-
-// export const handler: APIGatewayProxyHandler = async (
-//   event: APIGatewayProxyEvent
-// ): Promise<APIGatewayProxyResult> => {
-//   try {
-//     TodoBusinessLayer.deleteTodo(event, logger)
-
-//     return {
-//       statusCode: 200,
-//       body: null,
-//       headers: {
-//         'Access-Control-Allow-Origin': '*',
-//         'Access-Control-Allow-Credentials': true
-//       }
-//     }
-//   } catch (err) {
-//     logger.error(err)
-//   }
-// }

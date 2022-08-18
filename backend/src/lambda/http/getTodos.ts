@@ -6,7 +6,7 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
 import { getUserId } from '../../auth/utils'
 import { createLogger } from '../../utils/logger'
 import { TodoItem } from '../../models/TodoItem'
-import { getTodos } from '../../helpers/todosAccess'
+import { getTodos } from '../../helpers/todos'
 
 const logger = createLogger('getTodos')
 
@@ -15,9 +15,7 @@ export const handler = middy(
     try {
       logger.info('getTodos pending')
 
-      logger.info(event)
       const userId: string = getUserId(event)
-      logger.info(userId)
       const items: TodoItem[] = await getTodos(userId)
       logger.info('getTodos fulfilled')
 
@@ -27,16 +25,16 @@ export const handler = middy(
           items
         })
       }
-    } catch (err) {
+    } catch (error) {
       logger.error('getTodos failed')
-      logger.error(err)
+      logger.error(error)
     }
   }
 )
 
 handler.use(
   cors({
-    origin: "*",
+    origin: '*',
     credentials: true
   })
 )
