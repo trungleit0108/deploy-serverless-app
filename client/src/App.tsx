@@ -1,4 +1,4 @@
-import React, { Component } from 'react'
+import { Component } from 'react'
 import { Link, Route, Router, Switch } from 'react-router-dom'
 import { Grid, Menu, Segment } from 'semantic-ui-react'
 
@@ -21,6 +21,11 @@ export default class App extends Component<AppProps, AppState> {
   constructor(props: AppProps) {
     super(props)
 
+    const dataFromLocaStore = localStorage.getItem('isLoggedIn');
+    if (dataFromLocaStore) {
+      const authResult = JSON.parse(dataFromLocaStore)
+      props.auth.setSession(authResult)
+    }
     this.handleLogin = this.handleLogin.bind(this)
     this.handleLogout = this.handleLogout.bind(this)
   }
@@ -91,7 +96,7 @@ export default class App extends Component<AppProps, AppState> {
         <Route
           path="/"
           exact
-          render={props => {
+          render={(props) => {
             return <Todos {...props} auth={this.props.auth} />
           }}
         />
@@ -99,7 +104,7 @@ export default class App extends Component<AppProps, AppState> {
         <Route
           path="/todos/:todoId/edit"
           exact
-          render={props => {
+          render={(props) => {
             return <EditTodo {...props} auth={this.props.auth} />
           }}
         />

@@ -16,6 +16,7 @@ import {
 
 import { createTodo, deleteTodo, getTodos, patchTodo } from '../api/todos-api'
 import Auth from '../auth/Auth'
+import { CreateTodoRequest } from '../types/CreateTodoRequest'
 import { Todo } from '../types/Todo'
 
 interface TodosProps {
@@ -46,17 +47,31 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
 
   onTodoCreate = async (event: React.ChangeEvent<HTMLButtonElement>) => {
     try {
+      if (!this.state.newTodoName.trim()) {
+        return
+      }
+
+      const duplicatedName = this.state.todos.find((todo) => {
+        return todo.name.trim() === this.state.newTodoName.trim()
+      })
+
+      if (duplicatedName) {
+        throw new Error('The name is duplicated')
+      }
+
       const dueDate = this.calculateDueDate()
-      const newTodo = await createTodo(this.props.auth.getIdToken(), {
+      const idToken = this.props.auth.getIdToken()
+      const newTodo: CreateTodoRequest = {
         name: this.state.newTodoName,
         dueDate
-      })
+      }
+      const result = await createTodo(idToken, newTodo)
       this.setState({
-        todos: [...this.state.todos, newTodo],
+        todos: [...this.state.todos, result],
         newTodoName: ''
       })
-    } catch {
-      alert('Todo creation failed')
+    } catch (error) {
+      alert(error)
     }
   }
 
@@ -64,7 +79,7 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
     try {
       await deleteTodo(this.props.auth.getIdToken(), todoId)
       this.setState({
-        todos: this.state.todos.filter(todo => todo.todoId !== todoId)
+        todos: this.state.todos.filter((todo) => todo.todoId !== todoId)
       })
     } catch {
       alert('Todo deletion failed')
@@ -126,6 +141,7 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
               onClick: this.onTodoCreate
             }}
             fluid
+            value={this.state.newTodoName}
             actionPosition="left"
             placeholder="To change the world..."
             onChange={this.handleNameChange}

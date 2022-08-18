@@ -13,11 +13,13 @@ const logger = createLogger('getTodos')
 export const handler = middy(
   async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     try {
-      logger.info('createTodo pending')
+      logger.info('getTodos pending')
 
-      const userId = getUserId(event)
+      logger.info(event)
+      const userId: string = getUserId(event)
+      logger.info(userId)
       const items: TodoItem[] = await getTodos(userId)
-      logger.info('createTodo fulfilled')
+      logger.info('getTodos fulfilled')
 
       return {
         statusCode: 200,
@@ -26,35 +28,15 @@ export const handler = middy(
         })
       }
     } catch (err) {
-      logger.error('createTodo failed')
+      logger.error('getTodos failed')
+      logger.error(err)
     }
   }
 )
 
 handler.use(
   cors({
+    origin: "*",
     credentials: true
   })
 )
-
-// export const handler: APIGatewayProxyHandler = async (
-//   event: APIGatewayProxyEvent
-// ): Promise<APIGatewayProxyResult> => {
-//   // TODO: Get all TODO items for a current user
-//   try {
-//     console.log('Processing event: ', event)
-//     const items = await getAllGroups(event) // notice the await her
-//     return {
-//       statusCode: 200,
-//       headers: {
-//         'Access-Control-Allow-Origin': '*',
-//         'Access-Control-Allow-Credentials': true
-//       },
-//       body: JSON.stringify({
-//         items
-//       })
-//     }
-//   } catch (err) {
-//     logger.error(`fail to get todo item`)
-//   }
-// }

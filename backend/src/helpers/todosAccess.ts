@@ -4,15 +4,15 @@ import { DocumentClient } from 'aws-sdk/clients/dynamodb'
 import { TodoItem } from '../models/TodoItem'
 import { TodoUpdate } from '../models/TodoUpdate'
 import { createLogger } from '../utils/logger'
-import { CreateSignedURLRequest } from '../requests/CreateSignedURLRequest'
-import { getPresignedUploadURL } from './attachmentUtils'
+// import { CreateSignedURLRequest } from '../requests/CreateSignedURLRequest'
+// import { getPresignedUploadURL } from './attachmentUtils'
 
 const logger = createLogger('todosDataAccess')
 
 const documentClient: DocumentClient = new AWS.DynamoDB.DocumentClient()
 const todosTable = process.env.TODOS_TABLE
-const bucketName = process.env.IMAGES_S3_BUCKET
-const urlExpiration: Number = Number(process.env.SIGNED_URL_EXPIRATION)
+const bucketName = process.env.ATTACHMENT_S3_BUCKET
+// const urlExpiration: Number = Number(process.env.SIGNED_URL_EXPIRATION)
 
 export const getTodos = async (userId: string): Promise<TodoItem[]> => {
   logger.info('Getting all todos')
@@ -20,12 +20,12 @@ export const getTodos = async (userId: string): Promise<TodoItem[]> => {
   const result = await documentClient
     .query({
       TableName: todosTable,
-      KeyConditionExpression: '#userId =:i',
-      ExpressionAttributeNames: {
-        '#userId': 'userId'
-      },
+      KeyConditionExpression: 'userId = :userId',
+      // ExpressionAttributeNames: {
+      //   '#userId': 'userId'
+      // },
       ExpressionAttributeValues: {
-        ':i': userId
+        ':userId': userId
       }
     })
     .promise()
@@ -103,54 +103,81 @@ export const updateTodo = async (
   return result.Attributes as TodoItem
 }
 
-export const getUrl = async (
-  todoId: string,
-  userId: string
-): Promise<string> => {
-  const createSignedURLRequest: CreateSignedURLRequest = {
-    Bucket: bucketName,
-    Key: todoId,
-    Expires: urlExpiration
-  }
-  // Get pre-signed URL from filestore
-  const url = await getPresignedUploadURL(createSignedURLRequest)
+// export const getUrl = async (
+//   todoId: string,
+//   userId: string
+// ): Promise<string> => {
+//   const createSignedURLRequest: CreateSignedURLRequest = {
+//     Bucket: bucketName,
+//     Key: todoId,
+//     Expires: urlExpiration
+//   }
+//   // Get pre-signed URL from filestore
+//   const url = await getPresignedUploadURL(createSignedURLRequest)
 
-  logger.info('url', { url: url })
+//   logger.info('url', { url: url })
 
-  // Write final url to datastore
-  await updateTodoUrl(todoId, userId)
-  return url
-}
+//   // Write final url to datastore
+//   await updateTodoUrl(todoId, userId)
+//   return url
+// }
 
-export const updateTodoUrl = async (todoId: string, userId: string) => {
-  logger.info(`Updating a todo's URL for item:`, {
-    todoId: todoId,
-    userId: userId
-  })
+// export const updateTodoUrl = async (todoId: string, userId: string) => {
+//   logger.info(`Updating a todo's URL for item:`, {
+//     todoId: todoId,
+//     userId: userId
+//   })
 
+//   const url = `https://${bucketName}.s3.amazonaws.com/${todoId}`
+
+//   const params = {
+//     TableName: todosTable,
+//     Key: {
+//       userId: userId,
+//       todoId: todoId
+//     },
+//     ExpressionAttributeNames: {
+//       '#todo_attachmentUrl': 'attachmentUrl'
+//     },
+//     ExpressionAttributeValues: {
+//       ':attachmentUrl': url
+//     },
+//     UpdateExpression: 'SET #todo_attachmentUrl = :attachmentUrl',
+//     ReturnValues: 'ALL_NEW'
+//   }
+
+//   const result = await documentClient.update(params).promise()
+
+//   logger.info(`Update statement has completed without error`, {
+//     result: result
+//   })
+
+//   return result.Attributes as TodoItem
+// }
+export const updateTodoAttachment = async (userId: string, todoId: string) => {
   const url = `https://${bucketName}.s3.amazonaws.com/${todoId}`
+  logger.info('heheeeeeeeeeeeeee')
+  logger.info(url)
+  try {
+    const result = await documentClient
+      .update({
+        TableName: todosTable,
+        Key: { todoId, userId },
+        UpdateExpression: 'set #attachmentUrl = :attachmentUrl',
+        ExpressionAttributeNames: { '#attachmentUrl': 'attachmentUrl' },
+        ExpressionAttributeValues: {
+          ':attachmentUrl': url
+        },
+        ReturnValues: 'UPDATED_NEW'
+      })
+      .promise()
 
-  const params = {
-    TableName: todosTable,
-    Key: {
-      userId: userId,
-      todoId: todoId
-    },
-    ExpressionAttributeNames: {
-      '#todo_attachmentUrl': 'attachmentUrl'
-    },
-    ExpressionAttributeValues: {
-      ':attachmentUrl': url
-    },
-    UpdateExpression: 'SET #todo_attachmentUrl = :attachmentUrl',
-    ReturnValues: 'ALL_NEW'
+    logger.info('attributesssssssssss')
+    logger.info(result)
+
+    return result
+  } catch (error) {
+    logger.info('errorrrrrrrrrrrrrrrrr')
+    logger.info(error)
   }
-
-  const result = await documentClient.update(params).promise()
-
-  logger.info(`Update statement has completed without error`, {
-    result: result
-  })
-
-  return result.Attributes as TodoItem
 }

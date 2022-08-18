@@ -43,6 +43,18 @@ export async function patchTodo(
   })
 }
 
+export async function putTodoAttachment(
+  idToken: string,
+  todoId: string
+): Promise<void> {
+  await Axios.put(`${apiEndpoint}/todos/${todoId}/attachment`, {},{
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${idToken}`
+    }
+  })
+}
+
 export async function deleteTodo(
   idToken: string,
   todoId: string
@@ -68,6 +80,6 @@ export async function getUploadUrl(
   return response.data.uploadUrl
 }
 
-export async function uploadFile(uploadUrl: string, file: Buffer): Promise<void> {
+export async function uploadFile(uploadUrl: string, file: Buffer) {
   await Axios.put(uploadUrl, file)
 }
