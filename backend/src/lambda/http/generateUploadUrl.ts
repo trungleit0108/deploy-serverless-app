@@ -4,7 +4,7 @@ import { cors, httpErrorHandler } from 'middy/middlewares'
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
 
 import { createLogger } from '../../utils/logger'
-import { getPresignedUploadURL } from '../../helpers/todos'
+import { getPresignedUploadURL } from '../../businessLogic/todos'
 import { CreateSignedURLRequest } from '../../requests/CreateSignedURLRequest'
 
 const bucketName = process.env.ATTACHMENT_S3_BUCKET

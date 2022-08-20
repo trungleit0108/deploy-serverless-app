@@ -6,7 +6,7 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
 import { getUserId } from '../../auth/utils'
 import { createLogger } from '../../utils/logger'
 import { TodoItem } from '../../models/TodoItem'
-import { getTodos } from '../../helpers/todos'
+import { getTodos } from '../../businessLogic/todos'
 
 const logger = createLogger('getTodos')
 

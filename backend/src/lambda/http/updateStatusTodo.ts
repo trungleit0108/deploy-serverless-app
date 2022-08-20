@@ -7,7 +7,7 @@ import { getUserId } from '../../auth/utils'
 import { TodoItem } from '../../models/TodoItem'
 import { createLogger } from '../../utils/logger'
 import { UpdateTodoRequest } from '../../requests/UpdateTodoRequest'
-import { updateStatusTodo } from '../../helpers/todos'
+import { updateStatusTodo } from '../../businessLogic/todos'
 
 const logger = createLogger('updateStatusTodo')
 

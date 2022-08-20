@@ -6,8 +6,8 @@ import {
   deleteTodo as deleteTodoAccess,
   updateStatusTodo as updateStatusTodoAccess,
   updateAttachmentTodo as updateAttachmentTodoAccess
-} from './todosAccess'
-import { getPresignedUploadURL as getPresignedUploadURLAccess } from './attachmentUtils'
+} from '../dataLayer/todosAccess'
+import { getPresignedUploadURL as getPresignedUploadURLAccess } from '../dataLayer/attachmentUtils'
 
 import { TodoItem } from '../models/TodoItem'
 import { CreateTodoRequest } from '../requests/CreateTodoRequest'
