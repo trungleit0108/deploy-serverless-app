@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { Form, Button } from 'semantic-ui-react'
 import Auth from '../auth/Auth'
+import { History } from 'history'
 import { getUploadUrl, uploadFile, putTodoAttachment } from '../api/todos-api'
 
 enum UploadState {
@@ -15,7 +16,8 @@ interface EditTodoProps {
       todoId: string
     }
   }
-  auth: Auth
+  auth: Auth,
+  history: History
 }
 
 interface EditTodoState {
@@ -63,9 +65,10 @@ export class EditTodo extends React.PureComponent<
         this.props.match.params.todoId
       )
 
+      this.props.history.goBack()
+
       console.log(res1)
       console.log(res2)
-      alert('File was uploaded!')
     } catch (e) {
       alert('Could not upload a file: ' + (e as Error).message)
     } finally {
