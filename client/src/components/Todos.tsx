@@ -28,13 +28,15 @@ interface TodosState {
   todos: Todo[]
   newTodoName: string
   loadingTodos: boolean
+  isCreating: boolean
 }
 
 export class Todos extends React.PureComponent<TodosProps, TodosState> {
   state: TodosState = {
     todos: [],
     newTodoName: '',
-    loadingTodos: true
+    loadingTodos: true,
+    isCreating: false
   }
 
   handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -47,7 +49,11 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
 
   onTodoCreate = async (event: React.ChangeEvent<HTMLButtonElement>) => {
     try {
+      if (this.state.isCreating) {
+        return
+      }
       if (!this.state.newTodoName.trim()) {
+        alert('Please input the task name')
         return
       }
 
@@ -59,6 +65,7 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
         throw new Error('The name is duplicated')
       }
 
+      this.setState({ isCreating: true })
       const dueDate = this.calculateDueDate()
       const idToken = this.props.auth.getIdToken()
       const newTodo: CreateTodoRequest = {
@@ -68,7 +75,8 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
       const result = await createTodo(idToken, newTodo)
       this.setState({
         todos: [...this.state.todos, result],
-        newTodoName: ''
+        newTodoName: '',
+        isCreating: false
       })
     } catch (error) {
       alert(error)
@@ -141,6 +149,7 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
               onClick: this.onTodoCreate
             }}
             fluid
+            disabled={this.state.isCreating}
             value={this.state.newTodoName}
             actionPosition="left"
             placeholder="To change the world..."
